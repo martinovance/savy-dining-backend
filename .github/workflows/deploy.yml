@@ -15,9 +15,12 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
+          check-latest: true
 
       - name: Build
-        run: go build -v -o main ./cmd/api
+        run: |
+          go mod download
+          GOOS=linux GOARCH=amd64 go build -v -o main ./cmd/api
 
       - name: Deploy to EC2
         uses: appleboy/scp-action@master
@@ -35,7 +38,7 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            mkdir -p /home/ec2-user/app
             chmod +x /home/ec2-user/app/main
-            # Simple process restart logic
             pgrep main && pkill main || true
             nohup /home/ec2-user/app/main > /home/ec2-user/app/app.log 2>&1 &
