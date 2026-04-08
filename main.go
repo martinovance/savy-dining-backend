@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -28,7 +27,11 @@ var db *sql.DB
 func main() {
 	// Initialize Database
 	initDB()
-	defer db.Close()
+	defer func() {
+		if db != nil {
+			db.Close()
+		}
+	}()
 
 	r := gin.Default()
 
@@ -36,7 +39,7 @@ func main() {
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Welcome to Savy Dining API",
-			"version": "1.2.0",
+			"version": "1.2.2",
 			"status":  "running",
 			"db":      "connected",
 		})
@@ -44,6 +47,10 @@ func main() {
 
 	// Health Check
 	r.GET("/health", func(c *gin.Context) {
+		if db == nil {
+			c.JSON(http.StatusServiceUnavailable, gin.H{"status": "down", "error": "database not initialized"})
+			return
+		}
 		err := db.Ping()
 		if err != nil {
 			c.JSON(http.StatusServiceUnavailable, gin.H{"status": "down", "error": "database unreachable"})
@@ -133,6 +140,10 @@ func createReservation(c *gin.Context) {
 }
 
 func getReservations(c *gin.Context) {
+	if db == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database not initialized"})
+		return
+	}
 	rows, err := db.Query("SELECT id, name, email, table_size, reservation_time, status FROM reservations ORDER BY reservation_time DESC")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch reservations"})
