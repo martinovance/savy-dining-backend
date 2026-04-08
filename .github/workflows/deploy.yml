@@ -15,11 +15,11 @@ jobs:
       uses: actions/setup-go@v5
       with:
         go-version: '1.21'
-        cache: true
 
-    - name: Build
+    - name: Fix and Build
       run: |
-        go mod download
+        rm -f go.sum
+        go mod tidy
         GOOS=linux GOARCH=amd64 go build -o main .
 
     - name: Deploy binary to EC2
@@ -43,5 +43,5 @@ jobs:
           mkdir -p /home/ec2-user/app
           chmod +x /home/ec2-user/app/main
           # Kill existing process if running on port 8080
-          fuser -k 8080/tcp || true
+          sudo fuser -k 8080/tcp || true
           nohup /home/ec2-user/app/main > /home/ec2-user/app/app.log 2>&1 &
