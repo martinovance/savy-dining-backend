@@ -22,6 +22,15 @@ var reservations = []Reservation{}
 func main() {
 	r := gin.Default()
 
+	// Welcome Route
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Welcome to Savy Dining API",
+			"version": "1.0.0",
+			"status":  "running",
+		})
+	})
+
 	// Health Check
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "up"})
