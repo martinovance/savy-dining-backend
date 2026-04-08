@@ -36,7 +36,7 @@ func main() {
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Welcome to Savy Dining API",
-			"version": "1.1.0",
+			"version": "1.2.0",
 			"status":  "running",
 			"db":      "connected",
 		})
@@ -70,7 +70,8 @@ func initDB() {
 	var err error
 	connStr := os.Getenv("DATABASE_URL")
 	if connStr == "" {
-		log.Fatal("DATABASE_URL environment variable is required")
+		log.Println("Warning: DATABASE_URL not set. Database operations will fail.")
+		return
 	}
 
 	db, err = sql.Open("postgres", connStr)
