@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"martinovance/savy-dining-backend/internal/domain"
+	"github.com/martinovance/savy-dining-backend/internal/domain"
 	"gorm.io/gorm"
 )
 
