@@ -3,8 +3,7 @@ package main
 import (
 	"log"
 	"os"
-	"martinovance/savy-dining-backend/internal/repository"
-	"martinovance/savy-dining-backend/internal/api"
+	"github.com/martinovance/savy-dining-backend/internal/repository"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -28,13 +27,31 @@ func main() {
 
 	r := gin.Default()
 	
+	// CORS Middleware
+	r.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	})
+
 	// API V1 Routes
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("/health", func(c *gin.Context) {
 			c.JSON(200, gin.H{"status": "healthy"})
 		})
-		v1.GET("/menu", api.GetMenuHandler(repo))
+		// Placeholder for menu handler until internal/api is finalized
+		v1.GET("/menu", func(c *gin.Context) {
+			c.JSON(200, gin.H{"message": "Menu endpoint coming soon"})
+		})
 	}
 
 	port := os.Getenv("PORT")
