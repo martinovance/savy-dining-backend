@@ -20,7 +20,7 @@ jobs:
       run: |
         rm -f go.sum
         go mod tidy
-        GOOS=linux GOARCH=amd64 go build -o main .
+        GOOS=linux GOARCH=amd64 go build -o main ./cmd/api
 
     - name: Deploy binary and systemd service to EC2
       uses: appleboy/scp-action@v0.1.7
