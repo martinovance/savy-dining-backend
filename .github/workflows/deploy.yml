@@ -22,7 +22,7 @@ jobs:
         go mod tidy
         GOOS=linux GOARCH=amd64 go build -o main ./cmd/api
 
-    - name: Deploy binary and systemd service to EC2
+    - name: Deploy binary to EC2
       uses: appleboy/scp-action@v0.1.7
       with:
         host: ${{ secrets.EC2_HOST }}
@@ -73,3 +73,12 @@ jobs:
           sudo systemctl daemon-reload
           sudo systemctl enable savy-backend
           sudo systemctl restart savy-backend
+          
+          # Wait a few seconds and check if it's actually running
+          sleep 5
+          if ! sudo systemctl is-active --quiet savy-backend; then
+            echo "ERROR: savy-backend service failed to start. Last 20 lines of log:"
+            tail -n 20 /home/ec2-user/app/app.log
+            exit 1
+          fi
+          echo "Service is running successfully."
