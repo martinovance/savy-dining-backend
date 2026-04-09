@@ -43,7 +43,10 @@ jobs:
           mkdir -p /home/ec2-user/app
           chmod +x /home/ec2-user/app/main
           
-          # Create systemd service file
+          # Force kill any process holding port 8080 to ensure old version is gone
+          sudo fuser -k 8080/tcp || true
+          
+          # Create systemd service file with absolute paths
           cat <<EOF | sudo tee /etc/systemd/system/savy-backend.service
           [Unit]
           Description=Savy Dining Go Backend
@@ -55,9 +58,12 @@ jobs:
           WorkingDirectory=/home/ec2-user/app
           Environment="DATABASE_URL=${{ secrets.DATABASE_URL }}"
           Environment="PORT=8080"
+          Environment="GIN_MODE=release"
           ExecStart=/home/ec2-user/app/main
           Restart=always
           RestartSec=5
+          StandardOutput=append:/home/ec2-user/app/app.log
+          StandardError=append:/home/ec2-user/app/app.log
 
           [Install]
           WantedBy=multi-user.target
