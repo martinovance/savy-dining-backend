@@ -25,6 +25,11 @@ func main() {
 		log.Fatal("Failed to run migrations:", err)
 	}
 
+	// Set Gin to release mode if not specified
+	if os.Getenv("GIN_MODE") == "" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	r := gin.Default()
 	
 	// CORS Middleware
@@ -46,11 +51,10 @@ func main() {
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("/health", func(c *gin.Context) {
-			c.JSON(200, gin.H{"status": "healthy"})
+			c.JSON(200, gin.H{"status": "healthy", "version": "1.0.1"})
 		})
-		// Placeholder for menu handler until internal/api is finalized
 		v1.GET("/menu", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "Menu endpoint coming soon"})
+			c.JSON(200, gin.H{"message": "Menu endpoint active"})
 		})
 	}
 
@@ -58,5 +62,10 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-	r.Run(":" + port)
+	
+	// CRITICAL: Bind to 0.0.0.0 to allow external traffic
+	log.Printf("Starting server on 0.0.0.0:%s", port)
+	if err := r.Run("0.0.0.0:" + port); err != nil {
+		log.Fatal("Failed to start server:", err)
+	}
 }
