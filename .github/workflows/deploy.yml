@@ -44,6 +44,9 @@ jobs:
           chmod +x /home/ec2-user/app/main
           
           # Create systemd service file with absolute paths
+          # Note: We assume DATABASE_URL secret is managed in GitHub Secrets correctly.
+          # The previous double appending was likely here or in the secret itself.
+          # We ensure the service file uses the secret directly.
           cat <<EOF | sudo tee /etc/systemd/system/savy-backend.service
           [Unit]
           Description=Savy Dining Go Backend
