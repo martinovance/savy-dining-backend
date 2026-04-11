@@ -44,7 +44,6 @@ jobs:
           chmod +x /home/ec2-user/app/main
           
           # Create systemd service file with absolute paths
-          # Added sslmode=disable to ensure connection without SSL certificates
           cat <<EOF | sudo tee /etc/systemd/system/savy-backend.service
           [Unit]
           Description=Savy Dining Go Backend
@@ -54,7 +53,7 @@ jobs:
           Type=simple
           User=ec2-user
           WorkingDirectory=/home/ec2-user/app
-          Environment="DATABASE_URL=${{ secrets.DATABASE_URL }}?sslmode=disable"
+          Environment="DATABASE_URL=${{ secrets.DATABASE_URL }}"
           Environment="PORT=8080"
           Environment="GIN_MODE=release"
           ExecStart=/home/ec2-user/app/main
