@@ -43,10 +43,8 @@ jobs:
           mkdir -p /home/ec2-user/app
           chmod +x /home/ec2-user/app/main
           
-          # Force kill any process holding port 8080 to ensure old version is gone
-          sudo fuser -k 8080/tcp || true
-          
           # Create systemd service file with absolute paths
+          # Added sslmode=disable to ensure connection without SSL certificates
           cat <<EOF | sudo tee /etc/systemd/system/savy-backend.service
           [Unit]
           Description=Savy Dining Go Backend
@@ -56,7 +54,7 @@ jobs:
           Type=simple
           User=ec2-user
           WorkingDirectory=/home/ec2-user/app
-          Environment="DATABASE_URL=${{ secrets.DATABASE_URL }}"
+          Environment="DATABASE_URL=${{ secrets.DATABASE_URL }}?sslmode=disable"
           Environment="PORT=8080"
           Environment="GIN_MODE=release"
           ExecStart=/home/ec2-user/app/main
@@ -74,11 +72,12 @@ jobs:
           sudo systemctl enable savy-backend
           sudo systemctl restart savy-backend
           
-          # Wait a few seconds and check if it's actually running
-          sleep 5
-          if ! sudo systemctl is-active --quiet savy-backend; then
-            echo "ERROR: savy-backend service failed to start. Last 20 lines of log:"
-            tail -n 20 /home/ec2-user/app/app.log
+          # Validation: Wait and check health endpoint
+          echo "Waiting for service to stabilize..."
+          sleep 10
+          if ! curl -s --fail http://localhost:8080/api/v1/health; then
+            echo "CRITICAL ERROR: Service is not responding on port 8080. Logs:"
+            tail -n 50 /home/ec2-user/app/app.log
             exit 1
           fi
-          echo "Service is running successfully."
+          echo "Deployment successful: API is reachable."
